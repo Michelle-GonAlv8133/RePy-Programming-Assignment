@@ -1,0 +1,30 @@
+# attackcase3.r2py
+# Another simple accuracy check: overwrite with another valid string.
+
+# Clean up
+if "testfile3.txt.a" in listfiles():
+  removefile("testfile3.txt.a")
+if "testfile3.txt.b" in listfiles():
+  removefile("testfile3.txt.b")
+
+# Create AB file
+myfile = ABopenfile("testfile3.txt", True)
+
+# First valid write
+myfile.writeat("SAAAAE", 0)
+myfile.close()
+
+# Re-open and write new valid content
+myfile = ABopenfile("testfile3.txt", True)
+myfile.writeat("SBBBBE", 0)
+myfile.close()
+
+# Re-open and check that latest valid content is there
+myfile = ABopenfile("testfile3.txt", True)
+
+try:
+  assert myfile.readat(6, 0) == "SBBBBE"
+  myfile.close()
+except:
+  myfile.close()
+  log("Overwriting valid file failed in attackcase3!")

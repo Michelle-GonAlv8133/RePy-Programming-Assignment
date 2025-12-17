@@ -1,0 +1,79 @@
+
+# attackcase4.r2py
+# Hint #3 attack:
+# Write "SHOW" then "ME" via AB interface and check whether the final Afile
+# content is the correct valid value "SHOWME".
+#
+# Correct / hardened monitor: Afile == "SHOWME"  -> NO breach
+# Buggy monitor:             Afile != "SHOWME"  -> breach -> log
+
+breach = False
+
+filename = "hint3.txt"
+
+def safe_remove(name):
+  try:
+    if name in listfiles():
+      removefile(name)
+  except:
+    pass
+
+# Clean up old files
+for nm in [filename, filename + ".a", filename + ".b"]:
+  safe_remove(nm)
+
+# Step 1: create file and write invalid "SHOW"
+try:
+  f = ABopenfile(filename, True)
+  try:
+    # "SHOW" is not S...E, so a correct monitor should treat this carefully
+    f.writeat("SHOW", 0)
+    f.close()
+  except:
+    try:
+      f.close()
+    except:
+      pass
+except:
+  # Hardened monitor may reject this; don't mark breach here.
+  pass
+
+# Step 2: reopen and append "ME"
+try:
+  f2 = ABopenfile(filename, True)
+  try:
+    # append "ME" after "SHOW"
+    f2.writeat("ME", 4)
+    f2.close()
+  except:
+    try:
+      f2.close()
+    except:
+      pass
+except:
+  # Can't reopen; don't mark breach yet
+  pass
+
+# Step 3: final check of canonical contents
+try:
+  rf = ABopenfile(filename, True)
+  try:
+    data = rf.readat(100, 0)
+    rf.close()
+
+    # Correct behavior: Afile should contain exactly "SHOWME"
+    # If it does NOT, then the monitor mishandled invalid intermediate data.
+    if str(data) != "SHOWME":
+      breach = True
+  except:
+    try:
+      rf.close()
+    except:
+      pass
+except:
+  # Can't read canonical file at all; treat that as breach on weak monitors
+  breach = True
+
+# Only log when we actually see a bug.
+if breach:
+  log("attackcase4 SHOWME breach (Afile != 'SHOWME')")

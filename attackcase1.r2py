@@ -1,0 +1,158 @@
+###############################################
+# attack_all.r2py  (updated filenames)
+###############################################
+
+############ attackcase1 ############
+
+# Clean up any existing files
+if "attackedtest1.txt.a" in listfiles():
+  removefile("attackedtest1.txt.a")
+if "attackedtest1.txt.b" in listfiles():
+  removefile("attackedtest1.txt.b")
+
+# Create an AB file
+myfile = ABopenfile("attackedtest1.txt", True)
+
+try:
+  # A brand-new valid file should read 'SE'
+  assert myfile.readat(2, 0) == 'SE'
+  myfile.close()
+except:
+  myfile.close()
+  log("Empty file is not handled properly in attackcase1!")
+
+
+############ attackcase2 ############
+
+# Clean up
+if "attackedtest2.txt.a" in listfiles():
+  removefile("attackedtest2.txt.a")
+if "attackedtest2.txt.b" in listfiles():
+  removefile("attackedtest2.txt.b")
+
+# Create AB file
+myfile = ABopenfile("attackedtest2.txt", True)
+
+# Write valid data
+myfile.writeat("StestE", 0)
+myfile.close()
+
+# Re-open and verify contents
+myfile = ABopenfile("attackedtest2.txt", True)
+
+try:
+  assert myfile.readat(6, 0) == "StestE"
+  myfile.close()
+except:
+  myfile.close()
+  log("Valid data write/read failed in attackcase2!")
+
+
+############ attackcase3 ############
+
+# Clean up
+if "attackedtest3.txt.a" in listfiles():
+  removefile("attackedtest3.txt.a")
+if "attackedtest3.txt.b" in listfiles():
+  removefile("attackedtest3.txt.b")
+
+# Create AB file
+myfile = ABopenfile("attackedtest3.txt", True)
+
+# First valid write
+myfile.writeat("SAAAAE", 0)
+myfile.close()
+
+# Re-open and write new valid content
+myfile = ABopenfile("attackedtest3.txt", True)
+myfile.writeat("SBBBBE", 0)
+myfile.close()
+
+# Re-open and check that latest valid content is there
+myfile = ABopenfile("attackedtest3.txt", True)
+
+try:
+  assert myfile.readat(6, 0) == "SBBBBE"
+  myfile.close()
+except:
+  myfile.close()
+  log("Overwriting valid file failed in attackcase3!")
+
+
+############ attackcase4 + attackcase5 ############
+
+if "attackedtest.txt.a" in listfiles():
+  removefile("attackedtest.txt.a")
+if "attackedtest.txt.b" in listfiles():
+  removefile("attackedtest.txt.b")
+
+f = ABopenfile("attackedtest.txt", True)
+f.writeat("StestE", 0)
+f.writeat("TEST", 6)
+f.writeat("TEST", -1)
+f.close()
+
+
+############ Hint #3 attack (SHOWME) ############
+
+breach = False
+filename = "hint3.txt"
+
+def safe_remove(name):
+  try:
+    if name in listfiles():
+      removefile(name)
+  except:
+    pass
+
+# Clean up old files
+for nm in [filename, filename + ".a", filename + ".b"]:
+  safe_remove(nm)
+
+# Step 1: create file and write invalid "SHOW"
+try:
+  f = ABopenfile(filename, True)
+  try:
+    f.writeat("SHOW", 0)
+    f.close()
+  except:
+    try:
+      f.close()
+    except:
+      pass
+except:
+  pass
+
+# Step 2: reopen and append "ME"
+try:
+  f2 = ABopenfile(filename, True)
+  try:
+    f2.writeat("ME", 4)
+    f2.close()
+  except:
+    try:
+      f2.close()
+    except:
+      pass
+except:
+  pass
+
+# Step 3: final check
+try:
+  rf = ABopenfile(filename, True)
+  try:
+    data = rf.readat(100, 0)
+    rf.close()
+
+    if str(data) != "SHOWME":
+      breach = True
+  except:
+    try:
+      rf.close()
+    except:
+      pass
+except:
+  breach = True
+
+if breach:
+  log("attackcase4 SHOWME breach (Afile != 'SHOWME')")

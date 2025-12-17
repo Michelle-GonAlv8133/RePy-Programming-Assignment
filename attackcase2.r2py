@@ -1,0 +1,25 @@
+# atackcase2.r2py
+# Sample “write then read valid data” test.
+
+# Clean up
+if "testfile2.txt.a" in listfiles():
+  removefile("testfile2.txt.a")
+if "testfile2.txt.b" in listfiles():
+  removefile("testfile2.txt.b")
+
+# Create AB file
+myfile = ABopenfile("testfile2.txt", True)
+
+# Write valid data
+myfile.writeat("StestE", 0)
+myfile.close()
+
+# Re-open and verify contents
+myfile = ABopenfile("testfile2.txt", True)
+
+try:
+  assert myfile.readat(6, 0) == "StestE"
+  myfile.close()
+except:
+  myfile.close()
+  log("Valid data write/read failed in attackcase2!")

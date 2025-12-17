@@ -1,0 +1,15 @@
+# attackcase5.r2py
+# Attack for the "poor defenses" reference monitor.
+# (From your friend's working case)
+
+if "testfile.txt.a" in listfiles():
+  removefile("testfile.txt.a")
+if "testfile.txt.b" in listfiles():
+  removefile("testfile.txt.b")
+
+f = ABopenfile("testfile.txt", True)
+f.writeat("StestE", 0)
+f.writeat("TEST", 6)   # 6 == len("StestE")
+f.writeat("TEST", -1)
+
+f.close()
